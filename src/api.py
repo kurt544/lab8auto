@@ -38,4 +38,8 @@ def api_fibbonacci(fib_input):
 		"output": sequence
 	}
 	return jsonify(response)
+
+@app.route('/slack-alert/<string:>')
+def api_slack_alert():
+   pass
 app.run()
