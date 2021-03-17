@@ -1,6 +1,9 @@
 import flask 
 import hashlib
 from flask import jsonify
+from slack_sdk.webhook import WebhookClient
+import requests 
+import json 
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
@@ -51,4 +54,16 @@ def prime_check(n):
             if(number % i==0):
                return jsonify(input=n, output=False)
         return jsonify(input=n, output=True)
+@app.route('/slack-alert/<string:message>')
+def slack_message(message):
+	posted = False
+	try:
+		webhook_url = "https://hooks.slack.com/services/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"
+		slack_data = {'text': message}
+		response = requests.post(
+			webhook_url, data=json.dumps(slack_data))
+		posted = True
+	except:
+		print("An exception had occured!")
+	return jsonify({"input:": message,"posted:": posteds})
 app.run()
