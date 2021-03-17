@@ -38,4 +38,17 @@ def api_fibbonacci(fib_input):
 		"output": sequence
 	}
 	return jsonify(response)
+
+@app.route('/is-prime/<int:n>')
+def prime_check(n):
+    number = isinstance(n, int)
+    if number == 1:
+        return jsonify(input=n, output=False)
+    elif (number==2):
+        return jsonify(input=n, output=True)
+    else:
+        for i in range(2,n):
+            if(number % i==0):
+               return jsonify(input=n, output=False)
+        return jsonify(input=n, output=True)
 app.run()
