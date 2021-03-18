@@ -10,7 +10,7 @@ app.config["DEBUG"] = True
 
 @app.route('/', methods=['GET'])
 def home():
-    return "<h1>Distant Reading Archive</h1><p>This site is a prototype API for distant reading of science fiction novels.</p>"
+    return "<h1>TCMG 412 API Docker Project</h1>"
 
 @app.route('/md5/<string:str2hash>',methods=['GET'])
 def api_md5(str2hash):
@@ -44,26 +44,28 @@ def api_fibbonacci(fib_input):
 
 @app.route('/is-prime/<int:n>')
 def prime_check(n):
-    number = isinstance(n, int)
-    if number == 1:
+    if n == 1:
         return jsonify(input=n, output=False)
-    elif (number==2):
+    elif (n==2):
         return jsonify(input=n, output=True)
     else:
-        for i in range(2,n):
-            if(number % i==0):
+        for i in range(2,n-1):
+            if(n % i == 0):
                return jsonify(input=n, output=False)
         return jsonify(input=n, output=True)
+
 @app.route('/slack-alert/<string:message>')
 def slack_message(message):
 	posted = False
 	try:
-		webhook_url = "https://hooks.slack.com/services/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"
+		webhook_url = "https://hooks.slack.com/services/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"
 		slack_data = {'text': message}
 		response = requests.post(
 			webhook_url, data=json.dumps(slack_data))
-		posted = True
+		print(response.status_code)
+		if(response.status_code == 200):
+			posted = True
 	except:
 		print("An exception had occured!")
-	return jsonify({"input:": message,"posted:": posteds})
-app.run()
+	return jsonify({"input:": message,"posted:": posted})
+app.run(host='0.0.0.0', port=5000, debug=True)
