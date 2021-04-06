@@ -8,7 +8,8 @@ import redis
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
-r = redis.Redis()
+r = redis.Redis(host='localhost')
+
 
 @app.route('/', methods=['GET'])
 def home():
@@ -71,44 +72,72 @@ def slack_message(message):
 		print("An exception had occured!")
 	return jsonify({"input:": message,"posted:": posted})
 
-@app.route('/keyval/<string: key>', methods = ['DELETE', 'GET'])
+@app.route('/keyval/<string:key>', methods = ['DELETE', 'GET'])
 def keyvaldg(key):
-	if request.method == 'DELETE':
-		redis.get(key)
+	json = {
+		"command":"",
+		"key":key,
+		"value":"",
+	}
+	json["command"] = 'GET' if request.method == "GET" else "DELETE"
+	try:
+		testing = r.get(json["key"])
+	except:
+		json["error"] = "Cannot connect to redis."
+		return jsonify(json)
+
+	if testing == None:
+		json["error"] = "Key value pair doesn't exist, cannot get/delete record."
+		return jsonify(json), 404
+
 	if request.method == 'GET':
-		redis.delete(key)
+		json["value"] = r.get(key)
+		json["result"]=True
+		return jsonify(json), 200
+	elif request.method == 'DELETE':
+		json["value"] = r.get(key)
+		r.delete(key)
+		json["result"]=True
+		return jsonify(json), 200
 
 
 @app.route('/keyval/', methods = ['POST', 'PUT'])
 def keyvalpp():
-	json = JsonResponse(command = 'CREATE' if request.method == "POST" else "UPDATE")
+	json = {
+		"command":"",
+		"key":"",
+		"value":"",
+	}
+	json["command"] = 'CREATE' if request.method == "POST" else "UPDATE"
 	try:
 		payload = request.get_json()
-		json.key = payload["key"]
-		json.value = payload["value"]
-		json.command += f" {payload['key']}/{payload['value']}"
+		json["key"] = payload["key"]
+		json["value"] = payload["value"]
+		json["command"] += f" {payload['key']}/{payload['value']}"
 	except:
-		json.error = "Missing or malformed JSON in client request."
+		json["error"] = "Missing or malformed JSON in client request."
 		return jsonify(json)
 
 	try:
-		testing = redis.get(json.key)
+		testing = r.get(json["key"])
 	except:
-		json.error = "Cannot connect to redis."
+		json["error"] = "Cannot connect to redis."
 		return jsonify(json)
 	
 	if request.method == "POST" and not testing == None:
-		json.error = "Key value pair already exists, cannot create new record."
+		json["error"] = "Key value pair already exists, cannot create new record."
+		return jsonify(json)
 	
-	elif request.method == "PUT" and not testing == None:
-		json.error = "Key value pair doesn't exists, cannot update record."
+	elif request.method == "PUT" and testing == None:
+		json["error"] = "Key doesn't exist, cannot update record."
+		return jsonify(json), 404
 
 	else:
-		if(redis.set(json.key, json.value) == False):
-			json.error = "Could not set the value in Redis"
+		if(r.mset({payload["key"]:payload["value"]}) == False):
+			json["error"] = "Could not set the value in Redis"
 			return jsonify(json), 400
 		else:
-			json.result = True
-			jsonify(json), 200
+			json["result"] = True
+			return jsonify(json), 200
 			
 app.run(host='0.0.0.0', port=5000, debug=True)
