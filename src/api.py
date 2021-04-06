@@ -84,7 +84,7 @@ def keyvaldg(key):
 		testing = r.get(json["key"])
 	except:
 		json["error"] = "Cannot connect to redis."
-		return jsonify(json)
+		return jsonify(json), 400
 
 	if testing == None:
 		json["error"] = "Key value pair doesn't exist, cannot get/delete record."
