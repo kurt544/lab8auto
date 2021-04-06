@@ -1,6 +1,5 @@
-FROM python:3.8
 
-ADD . /program
+FROM python:3-slim
 
 WORKDIR /program
 
@@ -12,4 +11,4 @@ COPY src/ .
 
 EXPOSE 5000
 
-CMD ["python3", "api.py"]
+CMD ["python3", "./api.py"]

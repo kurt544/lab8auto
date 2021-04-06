@@ -8,7 +8,7 @@ import redis
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
-r = redis.Redis(host='localhost')
+r = redis.Redis(host='redis', port = '6379', decode_responses=True)
 
 
 @app.route('/', methods=['GET'])
@@ -80,25 +80,25 @@ def keyvaldg(key):
 		"value":"",
 	}
 	json["command"] = 'GET' if request.method == "GET" else "DELETE"
+	json["command"] += " "+key
 	try:
 		testing = r.get(json["key"])
-	except:
-		json["error"] = "Cannot connect to redis."
+	except Exception as e:
+		json["error"] = e
 		return jsonify(json), 400
 
 	if testing == None:
 		json["error"] = "Key value pair doesn't exist, cannot get/delete record."
 		return jsonify(json), 404
-
 	if request.method == 'GET':
 		json["value"] = r.get(key)
 		json["result"]=True
 		return jsonify(json), 200
 	elif request.method == 'DELETE':
-		json["value"] = r.get(key)
+		json["value"] = ""+r.get(key)
 		r.delete(key)
 		json["result"]=True
-		return jsonify(json), 200
+		return jsonify(json)
 
 
 @app.route('/keyval/', methods = ['POST', 'PUT'])
@@ -120,9 +120,9 @@ def keyvalpp():
 
 	try:
 		testing = r.get(json["key"])
-	except:
-		json["error"] = "Cannot connect to redis."
-		return jsonify(json)
+	except Exception as e:
+		json["error"] = e
+		return jsonify(json), 409
 	
 	if request.method == "POST" and not testing == None:
 		json["error"] = "Key value pair already exists, cannot create new record."
