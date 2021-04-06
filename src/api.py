@@ -1,12 +1,14 @@
 import flask 
 import hashlib
-from flask import jsonify
+from flask import jsonify, request
 from slack_sdk.webhook import WebhookClient
 import requests 
 import json 
+import redis
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
+r = redis.Redis()
 
 @app.route('/', methods=['GET'])
 def home():
@@ -68,4 +70,45 @@ def slack_message(message):
 	except:
 		print("An exception had occured!")
 	return jsonify({"input:": message,"posted:": posted})
+
+@app.route('/keyval/<string: key>', methods = ['DELETE', 'GET'])
+def keyvaldg(key):
+	if request.method == 'DELETE':
+		redis.get(key)
+	if request.method == 'GET':
+		redis.delete(key)
+
+
+@app.route('/keyval/', methods = ['POST', 'PUT'])
+def keyvalpp():
+	json = JsonResponse(command = 'CREATE' if request.method == "POST" else "UPDATE")
+	try:
+		payload = request.get_json()
+		json.key = payload["key"]
+		json.value = payload["value"]
+		json.command += f" {payload['key']}/{payload['value']}"
+	except:
+		json.error = "Missing or malformed JSON in client request."
+		return jsonify(json)
+
+	try:
+		testing = redis.get(json.key)
+	except:
+		json.error = "Cannot connect to redis."
+		return jsonify(json)
+	
+	if request.method == "POST" and not testing == None:
+		json.error = "Key value pair already exists, cannot create new record."
+	
+	elif request.method == "PUT" and not testing == None:
+		json.error = "Key value pair doesn't exists, cannot update record."
+
+	else:
+		if(redis.set(json.key, json.value) == False):
+			json.error = "Could not set the value in Redis"
+			return jsonify(json), 400
+		else:
+			json.result = True
+			jsonify(json), 200
+			
 app.run(host='0.0.0.0', port=5000, debug=True)
