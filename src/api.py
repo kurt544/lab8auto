@@ -98,7 +98,7 @@ def keyvaldg(key):
 		json["value"] = ""+r.get(key)
 		r.delete(key)
 		json["result"]=True
-		return jsonify(json)
+		return jsonify(json), 200
 
 
 @app.route('/keyval/', methods = ['POST', 'PUT'])
@@ -116,17 +116,17 @@ def keyvalpp():
 		json["command"] += f" {payload['key']}/{payload['value']}"
 	except:
 		json["error"] = "Missing or malformed JSON in client request."
-		return jsonify(json)
+		return jsonify(json), 400
 
 	try:
 		testing = r.get(json["key"])
 	except Exception as e:
 		json["error"] = e
-		return jsonify(json), 409
+		return jsonify(json), 500
 	
 	if request.method == "POST" and not testing == None:
 		json["error"] = "Key value pair already exists, cannot create new record."
-		return jsonify(json)
+		return jsonify(json), 409
 	
 	elif request.method == "PUT" and testing == None:
 		json["error"] = "Key doesn't exist, cannot update record."
