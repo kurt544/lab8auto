@@ -37,7 +37,7 @@ def api_factorial(factorial):
 @app.route('/fibonacci/<int:fib_input>',methods = ['GET'])
 def api_fibbonacci(fib_input):
 	sequence = [0,1]
-	while(sequence[-1] +sequence[-2] < fib_input):
+	while(sequence[-1] +sequence[-2] <= fib_input):
 		sequence.append(sequence[-2]+sequence[-1])
 	response = {
 		"input": fib_input,
@@ -77,7 +77,6 @@ def keyvaldg(key):
 	json = {
 		"command":"",
 		"key":key,
-		"value":"",
 	}
 	json["command"] = 'GET' if request.method == "GET" else "DELETE"
 	json["command"] += " "+key
@@ -101,7 +100,7 @@ def keyvaldg(key):
 		return jsonify(json), 200
 
 
-@app.route('/keyval/', methods = ['POST', 'PUT'])
+@app.route('/keyval', methods = ['POST', 'PUT'])
 def keyvalpp():
 	json = {
 		"command":"",
@@ -125,10 +124,12 @@ def keyvalpp():
 		return jsonify(json), 500
 	
 	if request.method == "POST" and not testing == None:
-		json["error"] = "Key value pair already exists, cannot create new record."
+		json["result"]=False
+		json["error"] = "Unable to add pair: key already exists."
 		return jsonify(json), 409
 	
 	elif request.method == "PUT" and testing == None:
+		json["result"]=False
 		json["error"] = "Key doesn't exist, cannot update record."
 		return jsonify(json), 404
 
