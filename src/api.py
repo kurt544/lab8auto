@@ -45,7 +45,7 @@ def api_fibbonacci(fib_input):
 	}
 	return jsonify(response)
 
-@app.route('/is-prime/<int:n>')
+@app.route('/is-prime/<int:n>',methods = ['GET'])
 def prime_check(n):
     if n == 1:
         return jsonify(input=n, output=False)
