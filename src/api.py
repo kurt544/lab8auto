@@ -61,16 +61,17 @@ def prime_check(n):
 def slack_message(message):
 	posted = False
 	try:
-		webhook_url = "https://hooks.slack.com/services/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"
+		webhook_url = "https://hooks.slack.com/services/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"
 		slack_data = {'text': message}
 		response = requests.post(
 			webhook_url, data=json.dumps(slack_data))
-		print(response.status_code)
+		posted=response.status_code
 		if(response.status_code == 200):
 			posted = True
 	except:
+		posted = "Exception occurred"
 		print("An exception had occured!")
-	return jsonify({"input:": message,"posted:": posted})
+	return jsonify({"input": message,"posted": posted})
 
 @app.route('/keyval/<string:key>', methods = ['DELETE', 'GET'])
 def keyvaldg(key):
