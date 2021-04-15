@@ -61,11 +61,10 @@ def prime_check(n):
 def slack_message(message):
 	posted = False
 	try:
-		webhook_url = "https://hooks.slack.com/services/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"
+		webhook_url = "https://hooks.slack.com/services/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"
 		slack_data = {'text': message}
 		response = requests.post(
 			webhook_url, data=json.dumps(slack_data))
-		posted=response.status_code
 		if(response.status_code == 200):
 			posted = True
 	except:
