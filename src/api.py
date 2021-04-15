@@ -61,7 +61,7 @@ def prime_check(n):
 def slack_message(message):
 	posted = False
 	try:
-		webhook_url = "https://hooks.slack.com/services/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"
+		webhook_url = "https://hooks.slack.com/services/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"
 		slack_data = {'text': message}
 		response = requests.post(
 			webhook_url, data=json.dumps(slack_data))
